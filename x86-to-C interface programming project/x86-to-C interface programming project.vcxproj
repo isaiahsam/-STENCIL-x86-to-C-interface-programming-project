@@ -136,7 +136,7 @@
       <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:\Users\Isaiah\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Netwide Assembler 2.16.02rc9\nasm -f win 64 asm1DStencil.asm</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">asm1DStencil.obj</Outputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"C:\Program Files\NASM\nasm.exe" nasm -f win64 asm1DStencil.asm</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"C:\Program Files\NASM\nasm.exe" -f win64 asm1DStencil.asm</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">asm1DStencil.obj</Outputs>
     </CustomBuild>
   </ItemGroup>

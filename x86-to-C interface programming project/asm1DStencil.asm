@@ -9,8 +9,5 @@ global asmStencil
 extern printf
 
 asmStencil: 
-	sub rsp, 8*5
-	lea rcx, [msg]
-	call printf
-	add rsp, 8*5
+	mov rax, 10
 	ret
