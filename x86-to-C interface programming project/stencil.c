@@ -33,7 +33,7 @@ void display_first_ten(const char* name, int n, double* vector) {
 }
 
 extern void asmStencil();
-
+/*
 int main() {
     int n = 1 << 20; // Example size lang but this is  2^20
     double* X, * Y;
@@ -68,6 +68,49 @@ int main() {
     display_first_ten("Y", n - 3, Y);
 
     // Free allocated memory
+    free(X);
+    free(Y);
+
+    return 0;
+}
+*/
+
+int main() {
+    int n = 1 << 20; // Example size is 2^20
+    double* X, * Y;
+
+    X = (double*)malloc(n * sizeof(double));
+    if (X == NULL) {
+        fprintf(stderr, "Memory allocation for X failed.\n");
+        exit(1);
+    }
+
+    Y = (double*)malloc((n - 3) * sizeof(double)); // Adjusted Y size for the operation
+    if (Y == NULL) {
+        fprintf(stderr, "Memory allocation for Y failed.\n");
+        free(X); // Free X before exiting to avoid a memory leak
+        exit(1);
+    }
+
+    for (int i = 0; i < n; ++i) {
+        X[i] = (double)i + 1;
+    }
+
+    display_first_ten("X", n, X);
+
+    clock_t start, end;
+    double cpu_time_used;
+
+    start = clock();
+
+    stencil_1d(n, X, Y);
+
+    end = clock();
+    cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
+    printf("Time taken (seconds): %f\n", cpu_time_used);
+
+    display_first_ten("Y", n - 3, Y);
+
     free(X);
     free(Y);
 
