@@ -31,7 +31,9 @@ In our data analysis, we're comparing the program's runtime in release and debug
 - **2^24**: C: 0.2092, ASM: 0.1392
 - **2^28**: C: 1.7433, ASM: 1.0193
 
-  (deb20.png)
+![](deb20.png)
+![](deb24.png)
+![](deb28.png)
 
 ### Release Mode
 
@@ -49,6 +51,10 @@ In our data analysis, we're comparing the program's runtime in release and debug
 - **2^20**: C: 0.006867, ASM: 0.002800
 - **2^24**: C: 0.093133, ASM: 0.044800
 - **2^28**: C: 1.706567, ASM: 0.551400
+
+![](rel20.png)
+![](rel24.png)
+![](rel28.png)
 
 ## Performance Analysis
 
