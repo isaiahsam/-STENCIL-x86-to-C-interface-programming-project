@@ -1,95 +1,93 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <windows.h>
-#include <math.h>
 #include <time.h>
 
-// Declaration of the assembly function for the 1D stencil operation.
+#define N 10
+
+void stencil_c(int n, double* X, double* Y) {
+	for (int i = 3; i < n - 3; i++) {
+		Y[i] = X[i - 3] + X[i - 2] + X[i - 1] + X[i] + X[i + 1] + X[i + 2] + X[i + 3];
+	}
+}
+
 extern void asm1DStencil(int n, double* X, double* Y);
 
-// Gets the high-resolution performance counter value.
-LARGE_INTEGER getCurrentTime() {
-    LARGE_INTEGER time;
-    QueryPerformanceCounter(&time);
-    return time;
-}
-
-// Calculates execution time in seconds using high-resolution timestamps.
-double calculateExecutionTimeInSeconds(LARGE_INTEGER startTime, LARGE_INTEGER endTime) {
-    LARGE_INTEGER frequency;
-    QueryPerformanceFrequency(&frequency);
-    return (double)(endTime.QuadPart - startTime.QuadPart) / (double)frequency.QuadPart;
-}
-
-// The C implementation of the 1D stencil operation.
-void computeStencilC(int arraySize, double* inputArray, double* resultArray) {
-    printf("Result of C implementation: ");
-    int displayLimit = arraySize < 10 ? arraySize : 10; // Limiting the display to the first 10 elements.
-
-    for (int i = 0; i < arraySize; ++i) {
-        resultArray[i] = 0.0;
-        for (int offset = 0; offset < 7; ++offset) { // Summing 7 consecutive elements.
-            resultArray[i] += inputArray[i + offset];
-        }
-    }
-
-    for (int i = 0; i < displayLimit; ++i) {
-        printf("%.4f%s", resultArray[i], (i < displayLimit - 1) ? ", " : "\n");
-    }
-}
-
-// Generates an array filled with random double precision numbers.
-double* generateRandomArray(int size, unsigned int seed) {
-    double* array = (double*)malloc(size * sizeof(double));
-    if (!array) {
-        fprintf(stderr, "Failed to allocate memory for the array.\n");
-        exit(EXIT_FAILURE);
-    }
-
-    srand(seed); // Initialize random number generator.
-
-    for (int i = 0; i < size; ++i) {
-        array[i] = (rand() % 150) - 75 + ((double)rand() / RAND_MAX); // Generating numbers in the range [-75, 75].
-    }
-
-    return array;
+double get_execution_time(clock_t start, clock_t end) {
+	return ((double)(end - start)) / CLOCKS_PER_SEC;
 }
 
 int main() {
-    int arraySize = 268435456; // Example size: 2^28
+	int i;
+	clock_t start_c, end_c;
+	double cpu_time_used_c;
 
-    printf("Creating random array with %d elements...\n", arraySize);
-    double* inputArray = generateRandomArray(arraySize + 6, 12345); // Adjusting size for stencil operation.
-    double* resultArray = (double*)malloc((arraySize) * sizeof(double));
+	int lengths[] = { 1 << 20, 1 << 24, 1 << 28 }; // {2^20, 2^24, 2^27}
+	int num_lengths = sizeof(lengths) / sizeof(lengths[0]);
+	int sizes[] = { 20, 24, 28 };
 
-    if (!resultArray) {
-        fprintf(stderr, "Memory allocation for result array failed.\n");
-        free(inputArray);
-        exit(EXIT_FAILURE);
-    }
+	srand(time(NULL));
 
-    // Performing stencil computation using the C implementation.
-    LARGE_INTEGER startTimeC = getCurrentTime();
-    computeStencilC(arraySize, inputArray, resultArray);
-    LARGE_INTEGER endTimeC = getCurrentTime();
+	// Initialize vector X with random values
+	double* X = (double*)malloc(lengths[num_lengths - 1] * sizeof(double));
+	for (i = 0; i < lengths[num_lengths - 1]; i++) {
+		X[i] = (double)(rand() % 100); // Random value between 0 and 99
+	}
 
-    double executionTimeC = calculateExecutionTimeInSeconds(startTimeC, endTimeC);
-    printf("Execution time (C): %lf seconds.\n", executionTimeC);
+	printf("\nFirst ten values of X:");
+	for (i = 0; i < N; i++) {
+		printf("%.2lf ", X[i]);
+	}
 
-    // Resetting result array for assembly computation.
-    memset(resultArray, 0, arraySize * sizeof(double));
+	printf("\n\n - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n");
 
-    // Assembly implementation of stencil computation.
-    LARGE_INTEGER startTimeASM = getCurrentTime();
-    asm1DStencil(arraySize, inputArray, resultArray);
-    LARGE_INTEGER endTimeASM = getCurrentTime();
+	for (int j = 0; j < num_lengths; j++) {
+		int n = lengths[j];
+		double* Y = (double*)malloc(n * sizeof(double));
 
-    double executionTimeASM = calculateExecutionTimeInSeconds(startTimeASM, endTimeASM);
-    printf("Execution time (Assembly): %lf seconds.\n", executionTimeASM);
+		printf("\nSize n^%d \n", sizes[j]);
 
-    // Cleanup
-    free(inputArray);
-    free(resultArray);
 
-    return 0;
+		for (i = 0; i < n; i++) {
+			Y[i] = 0.0;
+		}
+
+		start_c = clock();
+
+		stencil_c(n, X, Y);
+
+		end_c = clock();
+
+		cpu_time_used_c = get_execution_time(start_c, end_c);
+		printf("\n\nTime taken by C implementation for vector length %d: %lf seconds", n, cpu_time_used_c);
+
+		printf("\nFirst ten values of vector Y:\n");
+		for (i = 3; i < N + 3 && i < n; i++) {
+			printf("%.2lf ", Y[i]);
+		}
+		for (i = 0; i < n; i++) {
+			Y[i] = 0.0;
+		}
+
+		start_c = clock();
+
+		asm1DStencil(n, X, Y);
+
+		end_c = clock();
+
+		cpu_time_used_c = get_execution_time(start_c, end_c);
+		printf("\n\nTime taken by assembly implementation for vector length %d: %lf seconds", n, cpu_time_used_c);
+
+		printf("\nFirst ten values of vector Y (assembly implementation):\n");
+		for (i = 0; i < N && i < n; i++) {
+			printf("%.2lf ", Y[i]);
+		}
+		printf("\n\n - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n");
+
+		free(Y);
+	}
+
+	free(X);
+
+	return 0;
 }
