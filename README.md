@@ -31,6 +31,8 @@ In our data analysis, we're comparing the program's runtime in release and debug
 - **2^24**: C: 0.2092, ASM: 0.1392
 - **2^28**: C: 1.7433, ASM: 1.0193
 
+  (deb20.png)
+
 ### Release Mode
 
 | Size | Kernel | Execution time each run for Release Mode |
