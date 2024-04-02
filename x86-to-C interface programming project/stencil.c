@@ -3,73 +3,65 @@
 #include <windows.h>
 #include <time.h>
 
-#define N 10
+#define FIRST_TEN 10
 
-void stencil_c(int n, double* X, double* Y) {
-    for (int i = 3; i < n - 3; i++) {
-        Y[i] = X[i - 3] + X[i - 2] + X[i - 1] + X[i] + X[i + 1] + X[i + 2] + X[i + 3];
+void compute_stencil(int length, double* inputArray, double* outputArray) {
+    for (int index = 3; index < length - 3; index++) {
+        outputArray[index] = inputArray[index - 3] + inputArray[index - 2] + inputArray[index - 1] + inputArray[index] + inputArray[index + 1] + inputArray[index + 2] + inputArray[index + 3];
     }
 }
 
-extern void asm1DStencil(int n, double* X, double* Y);
+extern void asm1DStencil(int length, double* inputArray, double* outputArray);
 
-double get_execution_time(clock_t start, clock_t end) {
-    return ((double)(end - start)) / CLOCKS_PER_SEC;
+double calculate_duration(clock_t startTime, clock_t endTime) {
+    return ((double)(endTime - startTime)) / CLOCKS_PER_SEC;
 }
 
 int main() {
-    int i;
-    clock_t start_c, end_c;
-    double cpu_time_used_c;
+    int counter;
+    clock_t startCompute, endCompute;
+    double computationTime;
 
-    int lengths[] = { 1 << 20, 1 << 24, 1 << 28 }; // {2^20, 2^24, 2^27}
-    int num_lengths = sizeof(lengths) / sizeof(lengths[0]);
-    int sizes[] = { 20, 24, 28 };
+    int dataSizes[] = { 1 << 20, 1 << 24, 1 << 28 }; // {2^20, 2^24, 2^28}
+    int totalSizes = sizeof(dataSizes) / sizeof(dataSizes[0]);
+    int exponentSizes[] = { 20, 24, 28 };
 
-    // Allocate memory for the largest size required
-    double* X = (double*)malloc(lengths[num_lengths - 1] * sizeof(double));
-    if (!X) {
-        fprintf(stderr, "Memory allocation failed\n");
+    double* inputData = (double*)malloc(dataSizes[totalSizes - 1] * sizeof(double));
+    if (!inputData) {
+        fprintf(stderr, "Failed to allocate memory\n");
         return EXIT_FAILURE;
     }
 
-    // Initialize vector X with monotonically increasing values
-    for (i = 0; i < lengths[num_lengths - 1]; i++) {
-        X[i] = i + 1; // Monotonically increasing values
+    for (counter = 0; counter < dataSizes[totalSizes - 1]; counter++) {
+        inputData[counter] = counter + 1;
     }
 
-    // Display the first ten values of X
-    printf("\nFirst ten values of X:");
-    for (i = 0; i < 10; i++) {
-        printf(" %.2lf", X[i]);
+    printf("\n===== Initial Values in inputData =====\n");
+    for (counter = 0; counter < FIRST_TEN; counter++) {
+        printf(" inputData[%d] = %.2lf\n", counter, inputData[counter]);
     }
 
-    printf("\n\n - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n");
+    printf("\n=============== Benchmarking Stencil Computations ===============\n");
 
-    for (int j = 0; j < num_lengths; j++) {
-        int n = lengths[j];
-        double* Y = (double*)malloc(n * sizeof(double));
+    for (int idx = 0; idx < totalSizes; idx++) {
+        int currentSize = dataSizes[idx];
+        double* resultArray = (double*)malloc(currentSize * sizeof(double));
 
-        printf("\nSize 2^%d \n", sizes[j]);
+        printf("\n--> Analyzing Performance for Array Size 2^%d <--\n", exponentSizes[idx]);
 
-        for (i = 0; i < n; i++) {
-            Y[i] = 0.0;
+        for (counter = 0; counter < currentSize; counter++) {
+            resultArray[counter] = 0.0;
         }
 
-        start_c = clock();
-        stencil_c(n, X, Y);
-        end_c = clock();
-        cpu_time_used_c = get_execution_time(start_c, end_c);
-        printf("\nTime taken by C implementation for vector length %d: %lf seconds", n, cpu_time_used_c);
+        startCompute = clock();
+        compute_stencil(currentSize, inputData, resultArray);
+        endCompute = clock();
+        computationTime = calculate_duration(startCompute, endCompute);
+        printf("\nComputation Time (C Function) for Array Size %d: %lf seconds\n", currentSize, computationTime);
 
-        printf("\nFirst ten calculated values of vector Y (C implementation):\n");
-        for (i = 3; i < N + 3 && i < n - 3; i++) { // Adjusted to show calculated values
-            printf("%.2lf ", Y[i]);
-        }
-
-        // Reset Y for assembly test
-        for (i = 0; i < n; i++) {
-            Y[i] = 0.0;
+        printf("\n--- First Ten Calculated Values in resultArray (C Function) ---\n");
+        for (counter = 3; counter < FIRST_TEN + 3 && counter < currentSize - 3; counter++) {
+            printf(" resultArray[%d] = %.2lf\n", counter, resultArray[counter]);
         }
 
         // Call to asm1DStencil would go here, using the same pattern as above for timing and displaying values
@@ -87,12 +79,12 @@ int main() {
         }
         */
 
-        printf("\n\n - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n");
+        printf("\n=================================================================\n");
 
-        free(Y);
+        free(resultArray);
     }
 
-    free(X);
+    free(inputData);
 
     return 0;
 }
