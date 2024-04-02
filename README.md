@@ -14,6 +14,8 @@ In our data analysis, we're comparing the program's runtime in release and debug
 
 ## Initial Values
 
+![](initvals.png)
+
 ### Debug Mode
 
 | Size | Kernel | Execution time each run for Debug Mode |
