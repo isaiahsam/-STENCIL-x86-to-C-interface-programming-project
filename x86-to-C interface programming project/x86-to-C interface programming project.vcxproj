@@ -138,6 +138,7 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">asm1DStencil.obj</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"C:\Program Files\NASM\nasm.exe" -f win64 asm1DStencil.asm</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">asm1DStencil.obj</Outputs>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
